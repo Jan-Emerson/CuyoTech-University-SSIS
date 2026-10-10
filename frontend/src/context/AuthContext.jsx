@@ -6,10 +6,11 @@ const AuthContext = createContext(null);
 function loadUser() {
   try {
     const raw = localStorage.getItem('ssis_user');
-    if (!raw) return null;
+    if (!raw || !localStorage.getItem('ssis_token')) return null;
     return JSON.parse(raw);
   } catch {
     localStorage.removeItem('ssis_user');
+    localStorage.removeItem('ssis_token');
     return null;
   }
 }
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('ssis_user');
+    localStorage.removeItem('ssis_token');
     setUser(null);
   }, []);
 
