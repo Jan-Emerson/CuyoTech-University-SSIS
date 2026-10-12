@@ -17,8 +17,8 @@ function loadUser() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(loadUser);
 
-  const login = useCallback(async (student_number, password) => {
-    const userData = await loginUser(student_number, password);
+  const login = useCallback(async (username, password) => {
+    const userData = await loginUser(username, password);
     setUser(userData);
     return userData;
   }, []);
@@ -28,8 +28,15 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  // helper booleans
+  const isStudent  = user?.role === 'student';
+  const isRegistrar= user?.role === 'registrar';
+  const isCashier  = user?.role === 'cashier';
+  const isDeptStaff= user?.role === 'dept_staff';
+  const isAdmin    = user?.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, isStudent, isRegistrar, isCashier, isDeptStaff, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
