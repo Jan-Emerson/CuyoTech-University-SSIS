@@ -117,7 +117,7 @@ export default function RoleSidebar() {
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-brand-logo">
-          <IconSchool size={20} />
+          <img src="/images/logo.png" alt="CuyoTech Logo" className="sidebar-brand-logo-img" />
         </div>
         <div>
           <span className="sidebar-brand-text">University of<br />CuyoTech</span>

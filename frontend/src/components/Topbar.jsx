@@ -53,6 +53,8 @@ export default function Topbar() {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        {/* Logo */}
+        <img src="/images/logo.png" alt="CuyoTech Logo" className="topbar-logo" />
         <span className="topbar-student-number">{user?.student_number}</span>
         <span className="topbar-divider">|</span>
         <span className="topbar-student-name">{user?.full_name}</span>
