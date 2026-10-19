@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { IconEye, IconEyeOff, IconSchool } from '../components/Icons.jsx';
+import { IconEye, IconEyeOff } from '../components/Icons.jsx';
 
 const ROLE_REDIRECTS = {
   student:    '/dashboard',
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="login-logo">
-          <IconSchool size={38} />
+          <img src="/images/logo.png" alt="University of CuyoTech Logo" className="login-logo-img" />
         </div>
 
         <p className="login-university">University of CuyoTech</p>
