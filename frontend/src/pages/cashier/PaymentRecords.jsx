@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getAllPayments, confirmPayment, addPayment } from '../../api/api.js';
-import { MOCK_STUDENTS } from '../../api/mockData.js';
+import { getAllPayments, confirmPayment, addPayment, getCashierStudents } from '../../api/api.js';
 
 const STATUS_BADGE = {
   Paid:    'badge badge-released',
@@ -9,6 +8,7 @@ const STATUS_BADGE = {
 
 export default function PaymentRecords() {
   const [payments, setPayments]       = useState([]);
+  const [students, setStudents]       = useState([]);
   const [loading,  setLoading]        = useState(true);
   const [search,   setSearch]         = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -20,7 +20,10 @@ export default function PaymentRecords() {
   const [adding,   setAdding]         = useState(false);
 
   useEffect(() => {
-    getAllPayments().then(setPayments).finally(() => setLoading(false));
+    Promise.all([getAllPayments(), getCashierStudents()])
+      .then(([p, s]) => { setPayments(p); setStudents(s); })
+      .catch(err => setToast(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3500); }
@@ -29,13 +32,18 @@ export default function PaymentRecords() {
     const or = orInput[payment_id]?.trim();
     if (!or) { showToast('Please enter an OR number first.'); return; }
     setSaving(payment_id);
-    await confirmPayment(payment_id, or);
-    setPayments(prev => prev.map(p => p.payment_id === payment_id
-      ? { ...p, status: 'Paid', or_number: or, date: new Date().toISOString().split('T')[0] }
-      : p
-    ));
-    setSaving(null);
-    showToast(`Payment confirmed — OR: ${or}`);
+    try {
+      await confirmPayment(payment_id, or);
+      setPayments(prev => prev.map(p => p.payment_id === payment_id
+        ? { ...p, status: 'Paid', or_number: or, date: new Date().toISOString().split('T')[0] }
+        : p
+      ));
+      showToast(`Payment confirmed — OR: ${or}`);
+    } catch (err) {
+      showToast(err.message || 'Failed to confirm payment.');
+    } finally {
+      setSaving(null);
+    }
   }
 
   async function handleAdd(e) {
@@ -44,12 +52,17 @@ export default function PaymentRecords() {
       showToast('Please fill in all required fields.'); return;
     }
     setAdding(true);
-    const created = await addPayment(newForm);
-    setPayments(prev => [created, ...prev]);
-    setNewForm({ student_id: '', description: '', amount: '', method: 'Cash' });
-    setShowAdd(false);
-    setAdding(false);
-    showToast('Payment record added.');
+    try {
+      const created = await addPayment(newForm);
+      setPayments(prev => [created, ...prev]);
+      setNewForm({ student_id: '', description: '', amount: '', method: 'Cash' });
+      setShowAdd(false);
+      showToast('Payment record added.');
+    } catch (err) {
+      showToast(err.message || 'Failed to add payment.');
+    } finally {
+      setAdding(false);
+    }
   }
 
   const filtered = payments.filter(p => {
@@ -106,7 +119,7 @@ export default function PaymentRecords() {
                 <select className="form-control" value={newForm.student_id}
                   onChange={e => setNewForm(f => ({ ...f, student_id: e.target.value }))}>
                   <option value="">— Select Student —</option>
-                  {MOCK_STUDENTS.map(s => (
+                  {students.map(s => (
                     <option key={s.student_id} value={s.student_id}>
                       {s.student_number} — {s.full_name}
                     </option>

@@ -71,6 +71,33 @@ router.get('/clearance', async (req, res) => {
   res.json(rows);
 });
 
+// GET /api/student/payments  (this student's fees, paid and pending)
+router.get('/payments', async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT paymentId AS payment_id, description, amount, paymentMethod AS method, status,
+            DATE_FORMAT(paymentDate, '%Y-%m-%d') AS date, receiptNumber AS or_number
+       FROM Payment WHERE studentId = ? ORDER BY paymentId`,
+    [req.user.student_id]
+  );
+  res.json(rows);
+});
+
+// PATCH /api/student/payments/:id/method  { method }
+// Student only picks how they'll pay. It stays Pending until the cashier confirms with an OR number.
+router.patch('/payments/:id/method', async (req, res) => {
+  const { method } = req.body || {};
+  if (!['Cash', 'Online'].includes(method)) {
+    return res.status(400).json({ message: 'Invalid payment method.' });
+  }
+  const [r] = await pool.query(
+    `UPDATE Payment SET paymentMethod = ?
+      WHERE paymentId = ? AND studentId = ? AND status = 'Pending'`,
+    [method, req.params.id, req.user.student_id]
+  );
+  if (r.affectedRows === 0) return res.status(404).json({ message: 'Pending payment not found.' });
+  res.json({ success: true });
+});
+
 // GET /api/student/dashboard
 router.get('/dashboard', async (req, res) => {
   const id = req.user.student_id;
