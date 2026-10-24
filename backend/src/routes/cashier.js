@@ -13,6 +13,16 @@ const SELECT_PAYMENT = `
     JOIN Student s ON s.studentId = p.studentId
     JOIN Users u ON u.userId = s.userId`;
 
+// GET /api/cashier/students  (for the "Add Payment" dropdown)
+router.get('/students', async (_req, res) => {
+  const [rows] = await pool.query(
+    `SELECT s.studentId AS student_id, s.studentNum AS student_number, u.fullName AS full_name
+       FROM Student s JOIN Users u ON u.userId = s.userId
+      ORDER BY s.studentNum`
+  );
+  res.json(rows);
+});
+
 // GET /api/cashier/payments
 router.get('/payments', async (_req, res) => {
   const [rows] = await pool.query(`${SELECT_PAYMENT} ORDER BY p.paymentId`);

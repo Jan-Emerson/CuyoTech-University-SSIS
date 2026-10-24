@@ -3,6 +3,9 @@ import { getAllGradesForRegistrar, encodeGrade } from '../../api/api.js';
 
 const REMARKS_OPTIONS = ['PASSED', 'FAILED', 'INC', 'DRP'];
 
+// '' -> null (so an empty box is saved as "no grade yet", not 0)
+const toNum = (v) => (v === '' || v == null ? null : Number(v));
+
 export default function GradesEncoding() {
   const [grades,  setGrades]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,16 +28,27 @@ export default function GradesEncoding() {
 
   async function saveGrade(grade_id) {
     setSaving(true);
-    await encodeGrade(grade_id, {
-      midterm:     Number(form.midterm),
-      finals:      Number(form.finals),
-      final_grade: form.final_grade,
-      remarks:     form.remarks,
-    });
-    setGrades(prev => prev.map(g => g.grade_id === grade_id ? { ...g, ...form, midterm: Number(form.midterm), finals: Number(form.finals) } : g));
-    setEditing(null);
-    setSaving(false);
-    showToast('Grade saved successfully.');
+    try {
+      await encodeGrade(grade_id, {
+        midterm:     form.midterm,
+        finals:      form.finals,
+        final_grade: form.final_grade,
+        remarks:     form.remarks,
+      });
+      setGrades(prev => prev.map(g => g.grade_id === grade_id ? {
+        ...g,
+        midterm:     toNum(form.midterm),
+        finals:      toNum(form.finals),
+        final_grade: form.final_grade === '' ? null : form.final_grade,
+        remarks:     form.remarks,
+      } : g));
+      setEditing(null);
+      showToast('Grade saved successfully.');
+    } catch (err) {
+      showToast(err.message || 'Failed to save grade.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const filtered = grades.filter(g =>

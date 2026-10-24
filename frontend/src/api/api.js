@@ -47,6 +47,8 @@ export const getProfile       = () => request('/student/profile');
 export const getGrades        = () => request('/student/grades');
 export const getEnrollment    = () => request('/student/enrollment');
 export const getClearance     = () => request('/student/clearance');
+export const getMyPayments    = () => request('/student/payments');
+export const setPaymentMethod = (id, method) => send('PATCH', `/student/payments/${id}/method`, { method });
 export const getDocumentTypes = () => request('/documents/types');
 export const getDocuments     = () => request('/documents');
 export const submitDocument   = (body) => send('POST', '/documents', body);
@@ -63,6 +65,7 @@ export const getAllDocumentRequests    = () => request('/registrar/documents');
 export const updateDocumentStatus      = (id, status) => send('PATCH', `/registrar/documents/${id}`, { status });
 
 // ── CASHIER ───────────────────────────────────────────────
+export const getCashierStudents = () => request('/cashier/students');
 export const getAllPayments = () => request('/cashier/payments');
 export const confirmPayment = (id, or_number) => send('POST', `/cashier/payments/${id}/confirm`, { or_number });
 export const addPayment     = ({ student_id, description, amount, method }) =>
